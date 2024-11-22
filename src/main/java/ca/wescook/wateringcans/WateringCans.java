@@ -14,14 +14,11 @@ import java.util.Map;
 
 import static ca.wescook.wateringcans.WateringCans.*;
 
-@Mod(modid = MODID, name = MODNAME, version = "@VERSION@", dependencies = DEPENDENCIES, useMetadata = true)
+@Mod(modid = MODID, useMetadata = true, dependencies = "after:jei@[3.7.2.220,)")
 public class WateringCans {
-	// Mod Info
-	public static final String MODID = "wateringcans";
-	public static final String MODNAME = "Watering Cans";
-	public static final String DEPENDENCIES = "after:jei@[3.7.2.220,)"; // [] Inclusive, () Exclusive
 
-	// Mod Constants
+	public static final String MODID = "wateringcans"; // FG5 doesn't have the innate ability to have one source of truth for the modid using Gradle :(
+
 	public static final String[] materials = new String[]{"stone", "iron", "gold", "obsidian", "creative"};
 	public static final byte petalVariations = 9;
 	public static final short fluidCapacity = 500;
@@ -30,9 +27,7 @@ public class WateringCans {
 		"growth_solution", "fluid.growth_solution"
 	);
 
-	// Create instance of proxy
-	// This will vary depending on if the client or server is running
-	@SidedProxy(clientSide="ca.wescook.wateringcans.proxy.ClientProxy", serverSide="ca.wescook.wateringcans.proxy.ServerProxy")
+	@SidedProxy(clientSide="ca.wescook.wateringcans.proxy.ClientProxy", serverSide="ca.wescook.wateringcans.proxy.CommonProxy")
 	static private CommonProxy proxy;
 
 	// Enable universal buckets
@@ -41,7 +36,6 @@ public class WateringCans {
 		FluidRegistry.enableUniversalBucket();
 	}
 
-	// Events
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		WateringCans.proxy.preInit(event);
