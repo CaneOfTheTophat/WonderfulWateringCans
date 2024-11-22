@@ -1,67 +1,67 @@
-buildscript {
-	repositories {
-		jcenter()
-		maven {
-			name = "forge"
-			url = "http://files.minecraftforge.net/maven"
-		}
-	}
-	dependencies {
-		classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
-	}
-}
-
-apply plugin: 'net.minecraftforge.gradle.forge'
-compileJava.options.encoding = 'UTF-8'
-
-// Link properties file (variables now accessible as config.var)
-ext.configFile = file "gradle.properties"
-configFile.withReader {
-	def prop = new Properties()
-	prop.load(it)
-	project.ext.config = new ConfigSlurper().parse prop
-}
-
-version = config.minecraft_version + "-" + config.mod_version
-group = "ca.wescook.wateringcans"
-archivesBaseName = "WateringCans"
-
-minecraft {
-	version = config.minecraft_version + "-" + config.forge_version
-	runDir = "run"
-	mappings = config.mappings
-
-	// Replace @VERSION@ in WateringCans.java with mod version from gradle.properties
-	replace '@VERSION@', config.mod_version
-	replaceIn 'WateringCans.java'
+plugins {
+	id 'net.minecraftforge.gradle' version '5.1.+'
+	id 'wtf.gofancy.fancygradle' version '1.1.+'
+	id 'java'
 }
 
 repositories {
+	// JEI mavens
 	maven {
-		url "http://dvs1.progwml6.com/files/maven" // JEI
+		name = "Progwml6 maven"
+		url = "https://dvs1.progwml6.com/files/maven/"
+	}
+	maven {
+		name = "ModMaven"
+		url = "https://modmaven.dev"
+	}
+}
+
+version = "1.12.2-" + mod_version
+group = "ca.wescook.wateringcans"
+archivesBaseName = "WonderfulWateringCans"
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+
+sourceSets.all { it.output.resourcesDir = it.output.classesDirs.getFiles().iterator().next() }
+
+minecraft {
+	mappings channel: 'snapshot', version: '20171003-1.12'
+
+	runs {
+		client {
+			workingDirectory project.file('run')
+
+			property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+			property 'forge.logging.console.level', 'debug'
+		}
+
+		server {
+			property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+			property 'forge.logging.console.level', 'debug'
+		}
 	}
 }
 
 dependencies {
-	compile "mezz.jei:jei_1.11.2:4.2.7.240:api" // JEI
+	minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2860'
+	compileOnly "mezz.jei:jei_1.12.2:" + jei_version + ":api"
+	runtimeOnly "mezz.jei:jei_1.12.2:" + jei_version
 }
 
-processResources
-{
-	// this will ensure that this task is redone when the versions change.
+fancyGradle {
+	 patches {
+		resources
+		asm
+		mergetool
+	}
+}
+
+processResources {
 	inputs.property "version", project.version
-	inputs.property "mcversion", project.minecraft.version
 
-	// replace stuff in mcmod.info, nothing else
-	from(sourceSets.main.resources.srcDirs) {
-		include 'mcmod.info'
-
-		// replace version and mcversion
-		expand 'version':project.version, 'mcversion':project.minecraft.version
-	}
-
-	// copy everything else, that's not the mcmod.info
-	from(sourceSets.main.resources.srcDirs) {
-		exclude 'mcmod.info'
+	filesMatching('mcmod.info') {
+		expand 'version': project.version
 	}
 }
+
+jar.finalizedBy('reobfJar')
