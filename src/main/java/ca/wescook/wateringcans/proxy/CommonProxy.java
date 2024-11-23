@@ -1,7 +1,6 @@
 package ca.wescook.wateringcans.proxy;
 
 import ca.wescook.wateringcans.configs.Config;
-import ca.wescook.wateringcans.crafting.ModCrafting;
 import ca.wescook.wateringcans.fluids.ModFluids;
 import ca.wescook.wateringcans.items.ModItems;
 import ca.wescook.wateringcans.potions.ModPotions;
@@ -19,7 +18,6 @@ public class CommonProxy {
 	}
 
 	public void init(FMLInitializationEvent event) {
-		ModCrafting.registerCrafting();
 	}
 
 	public void postInit(FMLPostInitializationEvent event) {

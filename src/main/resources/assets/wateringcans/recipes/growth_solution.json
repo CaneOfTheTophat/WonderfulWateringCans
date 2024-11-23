@@ -1,0 +1,25 @@
+{
+  "type": "crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:dye",
+      "data": 15
+    },
+    {
+      "type": "minecraft:item_nbt",
+      "item": "forge:bucketFilled",
+      "nbt": {
+        "FluidName": "water",
+        "Amount": 1000
+      }
+    }
+  ],
+  "result": {
+    "type": "minecraft:item_nbt",
+    "item": "forge:bucketFilled",
+    "nbt": {
+      "FluidName": "growth_solution",
+      "Amount": 1000
+    }
+  }
+}
