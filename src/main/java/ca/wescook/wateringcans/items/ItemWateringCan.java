@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -40,7 +41,6 @@ public class ItemWateringCan extends Item {
 	ItemWateringCan() {
 		setRegistryName("watering_can");
 		setUnlocalizedName(getRegistryName().toString());
-		GameRegistry.register(this);
 		setCreativeTab(CreativeTabs.TOOLS);
 		setMaxStackSize(1);
 		setHasSubtypes(true);
@@ -147,7 +147,7 @@ public class ItemWateringCan extends Item {
 
 	// Add tooltips
 	@Override
-	public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
+	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
 		NBTTagCompound compound = stack.getTagCompound();
 		if (compound != null) {
 			if (compound.getShort("amount") == 0) { // If empty
@@ -260,9 +260,9 @@ public class ItemWateringCan extends Item {
 			if (worldIn.isRemote) { // Client only
 				for (int i = 0; i < 25; i++) {
 					if (fluid.equals("water"))
-						worldIn.spawnParticle(EnumParticleTypes.WATER_SPLASH, rayTraceVector.xCoord + (worldIn.rand.nextGaussian() * 0.18D), rayTraceVector.yCoord, rayTraceVector.zCoord + (worldIn.rand.nextGaussian() * 0.18D), 0.0D, 0.0D, 0.0D);
+						worldIn.spawnParticle(EnumParticleTypes.WATER_SPLASH, rayTraceVector.x + (worldIn.rand.nextGaussian() * 0.18D), rayTraceVector.y, rayTraceVector.z + (worldIn.rand.nextGaussian() * 0.18D), 0.0D, 0.0D, 0.0D);
 					else if (fluid.equals("growth_solution"))
-						ParticleGrowthSolution.spawn(worldIn, rayTraceVector.xCoord + (worldIn.rand.nextGaussian() * 0.18D), rayTraceVector.yCoord, rayTraceVector.zCoord + (worldIn.rand.nextGaussian() * 0.18D), 0.0D, 0.0D, 0.0D);
+						ParticleGrowthSolution.spawn(worldIn, rayTraceVector.x + (worldIn.rand.nextGaussian() * 0.18D), rayTraceVector.y, rayTraceVector.z + (worldIn.rand.nextGaussian() * 0.18D), 0.0D, 0.0D, 0.0D);
 				}
 			}
 
