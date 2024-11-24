@@ -1,22 +1,23 @@
 package ca.wescook.wateringcans.crafting;
 
 import ca.wescook.wateringcans.WateringCans;
-import ca.wescook.wateringcans.fluids.ModFluids;
 import ca.wescook.wateringcans.items.ItemWateringCan;
 import ca.wescook.wateringcans.items.ModItems;
 import mezz.jei.api.BlankModPlugin;
+import mezz.jei.api.IModPlugin;
 import mezz.jei.api.IModRegistry;
 import mezz.jei.api.ISubtypeRegistry;
+import mezz.jei.api.ingredients.VanillaTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.ForgeModContainer;
-import net.minecraftforge.fluids.UniversalBucket;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @mezz.jei.api.JEIPlugin
-public class JEIPlugin extends BlankModPlugin {
+public class JEIPlugin implements IModPlugin {
 
 	@Override
 	public void registerItemSubtypes(ISubtypeRegistry subtypeRegistry) {
@@ -24,7 +25,7 @@ public class JEIPlugin extends BlankModPlugin {
 		ISubtypeRegistry.ISubtypeInterpreter wateringCanInterpreter = new ISubtypeRegistry.ISubtypeInterpreter() {
 			@Nullable
 			@Override
-			public String getSubtypeInfo(ItemStack itemStack) {
+			public String apply(ItemStack itemStack) {
 				if (itemStack.getTagCompound() != null)
 					return itemStack.getTagCompound().getString("material");
 				return null;
@@ -36,8 +37,8 @@ public class JEIPlugin extends BlankModPlugin {
 	@Override
 	public void register(@Nonnull IModRegistry registry) {
 		// Add description for growth solution bucket
-		ItemStack growthBucket = UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, ModFluids.fluidGrowthSolution); // Create instance of growth solution bucket
-		registry.addDescription(growthBucket, "jei.wateringcans:growth_bucket"); // Create description page for it
+		ItemStack growthBucket = FluidUtil.getFilledBucket(FluidRegistry.getFluidStack("growth_solution", 1000)); // Create instance of growth solution bucket
+		registry.addIngredientInfo(growthBucket, VanillaTypes.ITEM,"jei.wateringcans:growth_bucket"); // Create description page for it
 
 		// Add description for watering cans
 		for (String material : WateringCans.materials) {
@@ -45,7 +46,7 @@ public class JEIPlugin extends BlankModPlugin {
 			NBTTagCompound nbtCompound = ItemWateringCan.getDefaultNBT(); // Create compound from NBT defaults
 			nbtCompound.setString("material", material); // Overwrite material tag
 			tempItem.setTagCompound(nbtCompound); // Assign tag to ItemStack
-			registry.addDescription(tempItem, "jei.wateringcans:watering_can_" + material); // Create description page
+			registry.addIngredientInfo(tempItem, VanillaTypes.ITEM, "jei.wateringcans:watering_can_" + material); // Create description page
 		}
 	}
 }
