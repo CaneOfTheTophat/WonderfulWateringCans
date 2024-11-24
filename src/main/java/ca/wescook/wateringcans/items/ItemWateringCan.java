@@ -108,12 +108,15 @@ public class ItemWateringCan extends Item {
 	// Add creative menu variants
 	@SideOnly(Side.CLIENT)
 	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> list) {
-		for (String material : materials) { // Loop through materials
+		if(isInCreativeTab(tab))
+		{
+			for (String material : materials) { // Loop through materials
 			ItemStack tempItem = new ItemStack(this); // Create ItemStack
 			NBTTagCompound nbtCompound = getDefaultNBT(); // Create compound from NBT defaults
 			nbtCompound.setString("material", material); // Overwrite material tag
 			tempItem.setTagCompound(nbtCompound); // Assign tag to ItemStack
 			list.add(tempItem); // Add to creative menu
+			}
 		}
 	}
 
