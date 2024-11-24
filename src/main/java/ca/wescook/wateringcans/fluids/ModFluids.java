@@ -1,15 +1,19 @@
 package ca.wescook.wateringcans.fluids;
 
+import ca.wescook.wateringcans.WateringCans;
+import net.minecraft.block.Block;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+@Mod.EventBusSubscriber
 public class ModFluids {
-	public static FluidGrowthSolution fluidGrowthSolution;
-	public static BlockFluidGrowthSolution blockFluidGrowthSolution;
+	public static final Fluid growthSolution = new Fluid("growth_solution", new ResourceLocation(WateringCans.MODID, "fluids/growth_solution_still"), new ResourceLocation(WateringCans.MODID, "fluids/growth_solution_flow"));
 
-	public static void registerFluids() {
-		fluidGrowthSolution = new FluidGrowthSolution();
-		blockFluidGrowthSolution = new BlockFluidGrowthSolution();
-	}
-
-	public static void renderFluids() {
-		blockFluidGrowthSolution.render();
+	@SubscribeEvent
+	public static void registerFluidBlock(RegistryEvent.Register<Block> register) {
+		register.getRegistry().register(new BlockFluidGrowthSolution());
 	}
 }

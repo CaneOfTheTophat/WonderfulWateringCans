@@ -1,28 +1,18 @@
 package ca.wescook.wateringcans.potions;
 
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraft.potion.Potion;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+@Mod.EventBusSubscriber
 public class ModPotions {
-	public static PotionInvisible usingWateringCan;
-	public static PotionInvisible slowPlayer;
-	public static PotionInvisible inhibitFOV;
-
-	public static void registerPotions() {
-		// Using watering can
-		usingWateringCan = new PotionInvisible(false, 0);
-		usingWateringCan.setPotionName("usingWateringCan");
-		usingWateringCan.setRegistryName("using_watering_can");
-
-		// Slow player
-		slowPlayer = new PotionInvisible(true, 0);
-		slowPlayer.setPotionName("slowPlayer");
-		slowPlayer.setRegistryName("slow_player");
-		slowPlayer.registerPotionAttributeModifier(SharedMonsterAttributes.MOVEMENT_SPEED, "2a050f8c-07be-4e06-9d39-b6d299e0505f", -0.15D, 2);
-
-		// Inhibit FOV changes
-		inhibitFOV = new PotionInvisible(false, 0);
-		inhibitFOV.setPotionName("inhibitFOV");
-		inhibitFOV.setRegistryName("inhibit_fov");
+	@SubscribeEvent
+	public static void registerPotions(RegistryEvent.Register<Potion> register)
+	{
+		register.getRegistry().register(new PotionInvisible(false, 0).setPotionName("usingWateringCan").setRegistryName("using_watering_can"));
+		register.getRegistry().register(new PotionInvisible(true, 0).setPotionName("slowPlayer").setRegistryName("slow_player").registerPotionAttributeModifier(SharedMonsterAttributes.MOVEMENT_SPEED, "2a050f8c-07be-4e06-9d39-b6d299e0505f", -0.15D, 2));
+		register.getRegistry().register(new PotionInvisible(false, 0).setPotionName("inhibitFOV").setRegistryName("inhibit_fov"));
 	}
 }

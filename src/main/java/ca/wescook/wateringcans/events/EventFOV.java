@@ -1,5 +1,6 @@
 package ca.wescook.wateringcans.events;
 
+import ca.wescook.wateringcans.ModContent;
 import ca.wescook.wateringcans.potions.ModPotions;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,7 +16,7 @@ public class EventFOV {
 		// Get player object
 		EntityPlayer player = event.getEntity();
 
-		if (player.getActivePotionEffect(ModPotions.inhibitFOV) != null) {
+		if (player.getActivePotionEffect(ModContent.INHIBIT_FOV) != null) {
 			// Get player data
 			double playerSpeed = player.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getAttributeValue();
 			float capableSpeed = player.capabilities.getWalkSpeed();

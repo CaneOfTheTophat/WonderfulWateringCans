@@ -1,9 +1,8 @@
 package ca.wescook.wateringcans.crafting;
 
+import ca.wescook.wateringcans.ModContent;
 import ca.wescook.wateringcans.WateringCans;
 import ca.wescook.wateringcans.items.ItemWateringCan;
-import ca.wescook.wateringcans.items.ModItems;
-import mezz.jei.api.BlankModPlugin;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.IModRegistry;
 import mezz.jei.api.ISubtypeRegistry;
@@ -31,7 +30,7 @@ public class JEIPlugin implements IModPlugin {
 				return null;
 			}
 		};
-		subtypeRegistry.registerSubtypeInterpreter(ModItems.itemWateringCan, wateringCanInterpreter);
+		subtypeRegistry.registerSubtypeInterpreter(ModContent.WATERING_CAN, wateringCanInterpreter);
 	}
 
 	@Override
@@ -42,7 +41,7 @@ public class JEIPlugin implements IModPlugin {
 
 		// Add description for watering cans
 		for (String material : WateringCans.materials) {
-			ItemStack tempItem = new ItemStack(ModItems.itemWateringCan); // Create ItemStack
+			ItemStack tempItem = new ItemStack(ModContent.WATERING_CAN); // Create ItemStack
 			NBTTagCompound nbtCompound = ItemWateringCan.getDefaultNBT(); // Create compound from NBT defaults
 			nbtCompound.setString("material", material); // Overwrite material tag
 			tempItem.setTagCompound(nbtCompound); // Assign tag to ItemStack

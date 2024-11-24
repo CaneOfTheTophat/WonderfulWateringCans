@@ -1,13 +1,15 @@
 package ca.wescook.wateringcans.items;
 
+import net.minecraft.item.Item;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+@Mod.EventBusSubscriber
 public class ModItems {
-	public static ItemWateringCan itemWateringCan;
-
-	public static void registerItems() {
-		itemWateringCan = new ItemWateringCan();
-	}
-
-	public static void renderItems() {
-		itemWateringCan.render();
+	@SubscribeEvent
+	public static void registerItems(RegistryEvent.Register<Item> register)
+	{
+		register.getRegistry().register(new ItemWateringCan());
 	}
 }

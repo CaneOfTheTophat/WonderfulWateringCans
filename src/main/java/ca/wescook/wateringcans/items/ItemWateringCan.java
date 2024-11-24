@@ -1,5 +1,6 @@
 package ca.wescook.wateringcans.items;
 
+import ca.wescook.wateringcans.ModContent;
 import ca.wescook.wateringcans.configs.Config;
 import ca.wescook.wateringcans.particles.ParticleGrowthSolution;
 import ca.wescook.wateringcans.potions.ModPotions;
@@ -38,7 +39,7 @@ import static java.util.Arrays.asList;
 import static net.minecraft.block.BlockFarmland.MOISTURE;
 
 public class ItemWateringCan extends Item {
-	ItemWateringCan() {
+	public ItemWateringCan() {
 		setRegistryName("watering_can");
 		setUnlocalizedName(getRegistryName().toString());
 		setCreativeTab(CreativeTabs.TOOLS);
@@ -47,7 +48,7 @@ public class ItemWateringCan extends Item {
 	}
 
 	@SideOnly(Side.CLIENT)
-	void render() {
+	public void render() {
 		String[] wateringStates = new String[]{"true", "false"};
 
 		// Register all possible item model combinations (once at runtime)
@@ -83,7 +84,7 @@ public class ItemWateringCan extends Item {
 					// Is player using watering can
 					EntityPlayer player = Minecraft.getMinecraft().player;
 					String currentlyWatering = "false";
-					if (player.getActivePotionEffect(ModPotions.usingWateringCan) != null)
+					if (player.getActivePotionEffect(ModContent.USING_WATERING_CAN) != null)
 						currentlyWatering = "true";
 
 					// Return dynamic texture location
@@ -106,9 +107,9 @@ public class ItemWateringCan extends Item {
 
 	// Add creative menu variants
 	@SideOnly(Side.CLIENT)
-	public void getSubItems(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> list) {
+	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> list) {
 		for (String material : materials) { // Loop through materials
-			ItemStack tempItem = new ItemStack(itemIn); // Create ItemStack
+			ItemStack tempItem = new ItemStack(this); // Create ItemStack
 			NBTTagCompound nbtCompound = getDefaultNBT(); // Create compound from NBT defaults
 			nbtCompound.setString("material", material); // Overwrite material tag
 			tempItem.setTagCompound(nbtCompound); // Assign tag to ItemStack
@@ -245,12 +246,12 @@ public class ItemWateringCan extends Item {
 		// If water remains in can
 		if (amountRemaining > 0) {
 			// Set player as currently watering (via potions because onItemUseFinish is too limiting)
-			playerIn.addPotionEffect(new PotionEffect(ModPotions.usingWateringCan, 6, 0, false, false)); // Set player to "using can"
+			playerIn.addPotionEffect(new PotionEffect(ModContent.USING_WATERING_CAN, 6, 0, false, false)); // Set player to "using can"
 
 			// Slow player using obsidian can
 			if (material.equals("obsidian")) {
-				playerIn.addPotionEffect(new PotionEffect(ModPotions.slowPlayer, 5, 5, false, false)); // Slow player
-				playerIn.addPotionEffect(new PotionEffect(ModPotions.inhibitFOV, 10, 0, false, false)); // Apply secondary, slightly longer potion effect to inhibit FOV changes from slowness
+				playerIn.addPotionEffect(new PotionEffect(ModContent.SLOW_PLAYER, 5, 5, false, false)); // Slow player
+				playerIn.addPotionEffect(new PotionEffect(ModContent.INHIBIT_FOV, 10, 0, false, false)); // Apply secondary, slightly longer potion effect to inhibit FOV changes from slowness
 			}
 
 			// Play watering sound
