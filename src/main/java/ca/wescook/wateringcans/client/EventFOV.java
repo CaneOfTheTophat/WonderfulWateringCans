@@ -1,7 +1,6 @@
-package ca.wescook.wateringcans.events;
+package ca.wescook.wateringcans.client;
 
 import ca.wescook.wateringcans.ModContent;
-import ca.wescook.wateringcans.potions.ModPotions;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.FOVUpdateEvent;

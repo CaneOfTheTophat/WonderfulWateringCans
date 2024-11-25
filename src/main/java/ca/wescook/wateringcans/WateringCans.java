@@ -2,6 +2,8 @@ package ca.wescook.wateringcans;
 
 import ca.wescook.wateringcans.proxy.CommonProxy;
 import com.google.common.collect.ImmutableMap;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -30,11 +32,12 @@ public class WateringCans {
 	@SidedProxy(clientSide="ca.wescook.wateringcans.proxy.ClientProxy", serverSide="ca.wescook.wateringcans.proxy.CommonProxy")
 	static private CommonProxy proxy;
 
-	// Enable universal buckets
-	// Needs to happen before pre-init
 	static {
 		FluidRegistry.enableUniversalBucket();
 	}
+
+	// Define growth solution here
+	public static final Fluid growthSolution = new Fluid("growth_solution", new ResourceLocation(WateringCans.MODID, "fluids/growth_solution_still"), new ResourceLocation(WateringCans.MODID, "fluids/growth_solution_flow"));
 
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {

@@ -1,6 +1,6 @@
 package ca.wescook.wateringcans.proxy;
 
-import ca.wescook.wateringcans.events.EventFOV;
+import ca.wescook.wateringcans.client.EventFOV;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -24,7 +24,6 @@ public class ClientProxy extends CommonProxy {
 	public void postInit(FMLPostInitializationEvent event) {
 		super.postInit(event);
 
-		// Register FOV Event Handler
 		MinecraftForge.EVENT_BUS.register(new EventFOV());
 	}
 }
