@@ -3,7 +3,6 @@ package ca.wescook.wateringcans.items;
 import ca.wescook.wateringcans.ModContent;
 import ca.wescook.wateringcans.configs.Config;
 import ca.wescook.wateringcans.particles.ParticleGrowthSolution;
-import ca.wescook.wateringcans.potions.ModPotions;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemMeshDefinition;
@@ -28,7 +27,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -47,27 +45,26 @@ public class ItemWateringCan extends Item {
 		setHasSubtypes(true);
 	}
 
-	@SideOnly(Side.CLIENT)
-	public void render() {
+	public static void render() {
 		String[] wateringStates = new String[]{"true", "false"};
 
 		// Register all possible item model combinations (once at runtime)
 		for (String material : materials) { // All materials
 			for (String wateringState : wateringStates) {
 				// Register empty variant
-				ModelBakery.registerItemVariants(this, new ModelResourceLocation(getRegistryName(), "currently_watering=" + wateringState + ",material=" + material + ",petals=empty"));
+				ModelBakery.registerItemVariants(ModContent.WATERING_CAN, new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "currently_watering=" + wateringState + ",material=" + material + ",petals=empty"));
 
 				// Register filled variants
 				for (int i = 1; i < petalVariations; i++) { // Petal counts
 					for (String fluid : fluids.keySet()) { // All fluids
-						ModelBakery.registerItemVariants(this, new ModelResourceLocation(getRegistryName(), "currently_watering=" + wateringState + ",material=" + material + ",petals=" + fluid + "_" + i));
+						ModelBakery.registerItemVariants(ModContent.WATERING_CAN, new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "currently_watering=" + wateringState + ",material=" + material + ",petals=" + fluid + "_" + i));
 					}
 				}
 			}
 		}
 
 		// Custom Mesh Definitions (swap on the fly)
-		ModelLoader.setCustomMeshDefinition(this, new ItemMeshDefinition() {
+		ModelLoader.setCustomMeshDefinition(ModContent.WATERING_CAN, new ItemMeshDefinition() {
 			@Override
 			public ModelResourceLocation getModelLocation(ItemStack itemStackIn) {
 
@@ -89,9 +86,9 @@ public class ItemWateringCan extends Item {
 
 					// Return dynamic texture location
 					if (petals == 0)
-						return new ModelResourceLocation(getRegistryName(), "currently_watering=" + currentlyWatering + ",material=" + material + ",petals=empty");
+						return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "currently_watering=" + currentlyWatering + ",material=" + material + ",petals=empty");
 					else
-						return new ModelResourceLocation(getRegistryName(), "currently_watering=" + currentlyWatering + ",material=" + material + ",petals=" + fluid + "_" + petals);
+						return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "currently_watering=" + currentlyWatering + ",material=" + material + ",petals=" + fluid + "_" + petals);
 				}
 				else {
 					// NBT isn't set, may be spawned in
@@ -100,7 +97,7 @@ public class ItemWateringCan extends Item {
 				}
 
 				// Rendering without assigned NBT data.  Return empty watering can.
-				return new ModelResourceLocation(getRegistryName(), "currently_watering=false,material=iron,petals=empty");
+				return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "currently_watering=false,material=iron,petals=empty");
 			}
 		});
 	}
@@ -360,7 +357,7 @@ public class ItemWateringCan extends Item {
 	}
 
 	// Calculate petals from NBT "amount" in ItemStack
-	private byte countPetals(ItemStack stack) {
+	private static byte countPetals(ItemStack stack) {
 		// Get NBT data
 		NBTTagCompound nbtCompound = stack.getTagCompound();
 		if (nbtCompound != null) {
