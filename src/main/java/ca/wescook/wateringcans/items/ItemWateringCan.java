@@ -46,19 +46,15 @@ public class ItemWateringCan extends Item {
 	}
 
 	public static void render() {
-		String[] wateringStates = new String[]{"true", "false"};
-
 		// Register all possible item model combinations (once at runtime)
 		for (String material : materials) { // All materials
-			for (String wateringState : wateringStates) {
-				// Register empty variant
-				ModelBakery.registerItemVariants(ModContent.WATERING_CAN, new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "currently_watering=" + wateringState + ",material=" + material + ",petals=empty"));
+			// Register empty variant
+			ModelBakery.registerItemVariants(ModContent.WATERING_CAN, new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "material=" + material + ",petals=empty"));
 
-				// Register filled variants
-				for (int i = 1; i < petalVariations; i++) { // Petal counts
-					for (String fluid : fluids.keySet()) { // All fluids
-						ModelBakery.registerItemVariants(ModContent.WATERING_CAN, new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "currently_watering=" + wateringState + ",material=" + material + ",petals=" + fluid + "_" + i));
-					}
+			// Register filled variants
+			for (int i = 1; i < petalVariations; i++) { // Petal counts
+				for (String fluid : fluids.keySet()) { // All fluids
+					ModelBakery.registerItemVariants(ModContent.WATERING_CAN, new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "material=" + material + ",petals=" + fluid + "_" + i));
 				}
 			}
 		}
@@ -78,17 +74,11 @@ public class ItemWateringCan extends Item {
 					// Get petal number
 					byte petals = countPetals(itemStackIn);
 
-					// Is player using watering can
-					EntityPlayer player = Minecraft.getMinecraft().player;
-					String currentlyWatering = "false";
-					if (player.getActivePotionEffect(ModContent.USING_WATERING_CAN) != null)
-						currentlyWatering = "true";
-
 					// Return dynamic texture location
 					if (petals == 0)
-						return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "currently_watering=" + currentlyWatering + ",material=" + material + ",petals=empty");
+						return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "material=" + material + ",petals=empty");
 					else
-						return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "currently_watering=" + currentlyWatering + ",material=" + material + ",petals=" + fluid + "_" + petals);
+						return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "material=" + material + ",petals=" + fluid + "_" + petals);
 				}
 				else {
 					// NBT isn't set, may be spawned in
@@ -97,7 +87,7 @@ public class ItemWateringCan extends Item {
 				}
 
 				// Rendering without assigned NBT data.  Return empty watering can.
-				return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "currently_watering=false,material=iron,petals=empty");
+				return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "material=iron,petals=empty");
 			}
 		});
 	}
