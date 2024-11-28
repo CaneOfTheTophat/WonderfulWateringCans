@@ -90,7 +90,8 @@ public class ItemWateringCan extends Item {
 		NBTTagCompound compound = stack.getTagCompound();
 		if (compound == null || compound.getShort("amount") <= 0) {
 				tooltip.add(I18n.format("tooltip." + stack.getItem().getRegistryName().toString() + "", TextFormatting.DARK_GRAY)); // Display material tooltip
-			} else {
+		}
+		else {
 			String fluid = compound.getString("fluid"); // Get fluid type
 			tooltip.add(I18n.format("tooltip.wateringcans:contains") + ": " + I18n.format(fluids.get(fluid))); // Get localization string of fluid and add to tooltip
 			tooltip.add(I18n.format("tooltip.wateringcans:remaining") + ": " + compound.getShort("amount"));

@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 @GameRegistry.ObjectHolder(WateringCans.MODID)
 @Mod.EventBusSubscriber
 public class ModContent {
+
     public static final BlockFluidBase GROWTH_SOLUTION_BLOCK = null;
 
     public static final Item STONE_WATERING_CAN = null;

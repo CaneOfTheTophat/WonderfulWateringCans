@@ -10,6 +10,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class EventFOV {
+
 	@SubscribeEvent
 	public void fovUpdates(FOVUpdateEvent event) {
 		// Get player object

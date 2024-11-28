@@ -11,6 +11,7 @@ import java.util.Map;
 import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 
 public class Config {
+
 	public static boolean enableGrowthSolution;
 	public static Map<String, Boolean> enableWateringCans = new HashMap<String, Boolean>();
 	public static float growthMultiplier;
