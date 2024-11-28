@@ -1,0 +1,17 @@
+{
+  "parent": "wateringcans:item/watering_can",
+  "textures": {
+    "layer0": "wateringcans:items/wateringcans/base/stone",
+    "layer1": "wateringcans:items/wateringcans/petals/empty"
+  },	
+  "overrides": [
+    { "predicate": { "wateringcans:petal": 0.000001 }, "model": "wateringcans:item/stone_watering_can_filled_1" },
+    { "predicate": { "wateringcans:petal": 0.125000 }, "model": "wateringcans:item/stone_watering_can_filled_2" },
+    { "predicate": { "wateringcans:petal": 0.250000 }, "model": "wateringcans:item/stone_watering_can_filled_3" },
+    { "predicate": { "wateringcans:petal": 0.375000 }, "model": "wateringcans:item/stone_watering_can_filled_4" },
+    { "predicate": { "wateringcans:petal": 0.500000 }, "model": "wateringcans:item/stone_watering_can_filled_5" },
+    { "predicate": { "wateringcans:petal": 0.625000 }, "model": "wateringcans:item/stone_watering_can_filled_6" },
+    { "predicate": { "wateringcans:petal": 0.750000 }, "model": "wateringcans:item/stone_watering_can_filled_7" },
+    { "predicate": { "wateringcans:petal": 0.875000 }, "model": "wateringcans:item/stone_watering_can_filled_8" }
+  ]
+}

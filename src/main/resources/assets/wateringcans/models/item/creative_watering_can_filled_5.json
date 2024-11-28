@@ -1,0 +1,7 @@
+{
+  "parent": "wateringcans:item/watering_can",
+  "textures": {
+    "layer0": "wateringcans:items/wateringcans/base/creative",
+    "layer1": "wateringcans:items/wateringcans/petals/water_05"
+  }
+}

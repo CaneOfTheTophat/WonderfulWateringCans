@@ -20,11 +20,6 @@
     }
   },
   "result": {
-    "type": "minecraft:item_nbt",
-    "item": "wateringcans:watering_can",
-    "data": 0,
-    "nbt": {
-      "material": "stone"
-    }
+    "item": "wateringcans:obsidian_watering_can"
   }
 }

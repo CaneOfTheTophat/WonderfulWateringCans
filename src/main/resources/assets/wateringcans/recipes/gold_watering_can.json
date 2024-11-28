@@ -20,11 +20,6 @@
     }
   },
   "result": {
-    "type": "minecraft:item_nbt",
-    "item": "wateringcans:watering_can",
-    "data": 0,
-    "nbt": {
-      "material": "gold"
-    }
+    "item": "wateringcans:golden_watering_can"
   }
 }

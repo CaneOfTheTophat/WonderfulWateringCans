@@ -14,16 +14,11 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 import java.util.Map;
 
-import static ca.wescook.wateringcans.WateringCans.*;
-
-@Mod(modid = MODID, useMetadata = true, dependencies = "after:jei@[3.7.2.220,)")
+@Mod(modid = WateringCans.MODID, useMetadata = true, dependencies = "after:jei@[3.7.2.220,)")
 public class WateringCans {
 
 	public static final String MODID = "wateringcans"; // FG5 doesn't have the innate ability to have one source of truth for the modid using Gradle :(
 
-	public static final String[] materials = new String[]{"stone", "iron", "gold", "obsidian", "creative"};
-	public static final byte petalVariations = 9;
-	public static final short fluidCapacity = 500;
 	public static final Map<String, String> fluids = ImmutableMap.of( // Fluid IDs and their localization strings
 		"water", "tile.water.name",
 		"growth_solution", "fluid.growth_solution"

@@ -4,10 +4,6 @@ import ca.wescook.wateringcans.ModContent;
 import ca.wescook.wateringcans.configs.Config;
 import ca.wescook.wateringcans.particles.ParticleGrowthSolution;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemMeshDefinition;
-import net.minecraft.client.renderer.block.model.ModelBakery;
-import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
@@ -15,6 +11,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -26,10 +23,10 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static ca.wescook.wateringcans.WateringCans.*;
@@ -37,117 +34,66 @@ import static java.util.Arrays.asList;
 import static net.minecraft.block.BlockFarmland.MOISTURE;
 
 public class ItemWateringCan extends Item {
-	public ItemWateringCan() {
-		setRegistryName("watering_can");
+
+	private final short fluidCapacity;
+	private final float innateGrowthMultiplier;
+	private final int reach;
+	private final boolean oneFill;
+	private final boolean heavy;
+
+	public ItemWateringCan(String material, short fluidCapacity, float innateGrowthMultiplier, int reach, boolean oneFill, boolean heavy) {
+		setRegistryName( material + "_watering_can");
 		setUnlocalizedName(getRegistryName().toString());
 		setCreativeTab(CreativeTabs.TOOLS);
 		setMaxStackSize(1);
-		setHasSubtypes(true);
-	}
 
-	public static void render() {
-		// Register all possible item model combinations (once at runtime)
-		for (String material : materials) { // All materials
-			// Register empty variant
-			ModelBakery.registerItemVariants(ModContent.WATERING_CAN, new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "material=" + material + ",petals=empty"));
+		this.fluidCapacity = fluidCapacity;
+		this.innateGrowthMultiplier = innateGrowthMultiplier;
+		this.reach = reach;
+		this.oneFill = oneFill;
+		this.heavy = heavy;
 
-			// Register filled variants
-			for (int i = 1; i < petalVariations; i++) { // Petal counts
-				for (String fluid : fluids.keySet()) { // All fluids
-					ModelBakery.registerItemVariants(ModContent.WATERING_CAN, new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "material=" + material + ",petals=" + fluid + "_" + i));
-				}
-			}
-		}
-
-		// Custom Mesh Definitions (swap on the fly)
-		ModelLoader.setCustomMeshDefinition(ModContent.WATERING_CAN, new ItemMeshDefinition() {
+		addPropertyOverride(new ResourceLocation(MODID,"petal"), new IItemPropertyGetter() {
+			@SideOnly(Side.CLIENT)
 			@Override
-			public ModelResourceLocation getModelLocation(ItemStack itemStackIn) {
-
-				// Set material from NBT data
-				NBTTagCompound nbtCompound = itemStackIn.getTagCompound();
+			public float apply(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn) {
+				// Get NBT data
+				NBTTagCompound nbtCompound = stack.getTagCompound();
 				if (nbtCompound != null) {
-					// Get NBT data
-					String material = nbtCompound.getString("material");
-					String fluid = nbtCompound.getString("fluid");
+					short amountRemaining = nbtCompound.getShort("amount");
 
-					// Get petal number
-					byte petals = countPetals(itemStackIn);
-
-					// Return dynamic texture location
-					if (petals == 0)
-						return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "material=" + material + ",petals=empty");
-					else
-						return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "material=" + material + ",petals=" + fluid + "_" + petals);
+					return (float) amountRemaining / fluidCapacity;
 				}
-				else {
-					// NBT isn't set, may be spawned in
-					System.out.println("Missing NBT data on watering can.  Setting default data.");
-					itemStackIn.setTagCompound(getDefaultNBT());
-				}
-
-				// Rendering without assigned NBT data.  Return empty watering can.
-				return new ModelResourceLocation(ModContent.WATERING_CAN.getRegistryName(), "material=iron,petals=empty");
+				return 0F;
 			}
 		});
-	}
-
-	// Add creative menu variants
-	@SideOnly(Side.CLIENT)
-	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> list) {
-		if(isInCreativeTab(tab))
-		{
-			for (String material : materials) { // Loop through materials
-			ItemStack tempItem = new ItemStack(this); // Create ItemStack
-			NBTTagCompound nbtCompound = getDefaultNBT(); // Create compound from NBT defaults
-			nbtCompound.setString("material", material); // Overwrite material tag
-			tempItem.setTagCompound(nbtCompound); // Assign tag to ItemStack
-			list.add(tempItem); // Add to creative menu
-			}
-		}
-	}
-
-	// Add material to name
-	@Override
-	public String getUnlocalizedName(ItemStack stack) {
-		// Assign based on material
-		NBTTagCompound natCompound = stack.getTagCompound();
-		if (natCompound != null)
-			return "item." + getRegistryName().toString() + "_" + natCompound.getString("material");
-
-		return "item." + getRegistryName().toString(); // Fall back to default
 	}
 
 	// Don't animate re-equipping item
 	@Override
 	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
-		if (oldStack.getItem() == newStack.getItem()) { // If item matches
-			// Grab NBT data
-			NBTTagCompound oldNBT = oldStack.getTagCompound();
-			NBTTagCompound newNBT = newStack.getTagCompound();
+		// Grab NBT data
+		NBTTagCompound oldNBT = oldStack.getTagCompound();
+		NBTTagCompound newNBT = newStack.getTagCompound();
 
-			// If material, fluid type, and petal count match, don't reanimate
-			if (oldNBT != null && newNBT != null) { // NBT exists
-				if (oldNBT.getString("material").equals(newNBT.getString("material")) && oldNBT.getString("fluid").equals(newNBT.getString("fluid")) && countPetals(oldStack) == countPetals(newStack))
-					return false; // Only fluid amount changed, don't animate
-			}
+		// If fluid type match, don't reanimate
+		if (oldNBT != null && newNBT != null) { // NBT exists
+			if (oldNBT.getString("fluid").equals(newNBT.getString("fluid")))
+				return false; // Only fluid amount changed, don't animate
 		}
-
-		return true; // Something bigger changed, animate
+		return slotChanged;
 	}
 
 	// Add tooltips
 	@Override
 	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
 		NBTTagCompound compound = stack.getTagCompound();
-		if (compound != null) {
-			if (compound.getShort("amount") == 0) { // If empty
-				tooltip.add(I18n.format("tooltip.wateringcans:watering_can_" + compound.getString("material"), TextFormatting.DARK_GRAY)); // Display material tooltip
+		if (compound == null || compound.getShort("amount") <= 0) {
+				tooltip.add(I18n.format("tooltip." + stack.getItem().getRegistryName().toString() + "", TextFormatting.DARK_GRAY)); // Display material tooltip
 			} else {
-				String fluid = compound.getString("fluid"); // Get fluid type
-				tooltip.add(I18n.format("tooltip.wateringcans:contains") + ": " + I18n.format(fluids.get(fluid))); // Get localization string of fluid and add to tooltip
-				tooltip.add(I18n.format("tooltip.wateringcans:remaining") + ": " + compound.getShort("amount"));
-			}
+			String fluid = compound.getString("fluid"); // Get fluid type
+			tooltip.add(I18n.format("tooltip.wateringcans:contains") + ": " + I18n.format(fluids.get(fluid))); // Get localization string of fluid and add to tooltip
+			tooltip.add(I18n.format("tooltip.wateringcans:remaining") + ": " + compound.getShort("amount"));
 		}
 	}
 
@@ -194,8 +140,7 @@ public class ItemWateringCan extends Item {
 	}
 
 	private void refillWateringCan(World worldIn, EntityPlayer playerIn, NBTTagCompound nbtCompound, String blockName, BlockPos blockPos) {
-		// If gold, grant one refill
-		if (nbtCompound.getString("material").equals("gold")) {
+		if (oneFill) {
 			if (!nbtCompound.getBoolean("filledOnce"))
 				nbtCompound.setBoolean("filledOnce", true); // Set flag once and continue
 			else {
@@ -229,7 +174,6 @@ public class ItemWateringCan extends Item {
 
 	private void commenceWatering(World worldIn, EntityPlayer playerIn, ItemStack itemStackIn, NBTTagCompound nbtCompound, Vec3d rayTraceVector, BlockPos rayTraceBlockPos) {
 		// Get info
-		String material = nbtCompound.getString("material");
 		String fluid = nbtCompound.getString("fluid");
 		short amountRemaining = nbtCompound.getShort("amount");
 
@@ -238,8 +182,8 @@ public class ItemWateringCan extends Item {
 			// Set player as currently watering (via potions because onItemUseFinish is too limiting)
 			playerIn.addPotionEffect(new PotionEffect(ModContent.USING_WATERING_CAN, 6, 0, false, false)); // Set player to "using can"
 
-			// Slow player using obsidian can
-			if (material.equals("obsidian")) {
+			// Slow player
+			if (heavy) {
 				playerIn.addPotionEffect(new PotionEffect(ModContent.SLOW_PLAYER, 5, 5, false, false)); // Slow player
 				playerIn.addPotionEffect(new PotionEffect(ModContent.INHIBIT_FOV, 10, 0, false, false)); // Apply secondary, slightly longer potion effect to inhibit FOV changes from slowness
 			}
@@ -258,13 +202,7 @@ public class ItemWateringCan extends Item {
 			}
 
 			// Calculate watering can reach
-			int reach;
-			if (material.equals("obsidian"))
-				reach = 5;
-			else if (material.equals("creative"))
-				reach = 15;
-			else
-				reach = 3;
+			int reach = this.reach;
 
 			// Used to calculate offset in each direction
 			int halfReach = (int) Math.floor(reach / 2);
@@ -276,10 +214,7 @@ public class ItemWateringCan extends Item {
 				growthSpeed = 6F; // Initial speed
 				if (fluid.equals("growth_solution")) // Fluid multiplier
 					growthSpeed *= 2F;
-				if (material.equals("gold"))  // Gold can multiplier
-					growthSpeed *= 2.5F;
-				if (material.equals("creative")) // Creative can multiplier
-					growthSpeed = 30F;
+				growthSpeed *= innateGrowthMultiplier;
 				growthSpeed = Math.max(0, 30F - growthSpeed); // Lower is actually faster, so invert
 				growthSpeed = (float) Math.ceil(growthSpeed / Config.growthMultiplier); // Divide by config setting (0-10) as multiplier
 			}
@@ -321,16 +256,13 @@ public class ItemWateringCan extends Item {
 			}
 
 			// Decrease fluid amount
-			if (amountRemaining > 0 && !playerIn.isCreative() && !material.equals("creative")) {
-				if (material.equals("stone")) // If stone
-					nbtCompound.setShort("amount", (short) (amountRemaining - 2)); // Drain quicker (simulate smaller tank)
-				else
+			if (amountRemaining > 0 && !playerIn.isCreative()) {
 					nbtCompound.setShort("amount", (short) (amountRemaining - 1));
 			}
 		}
 		else {
 			// If gold can is empty, destroy it
-			if (material.equals("gold") && nbtCompound.getBoolean("filledOnce")) {
+			if (oneFill && nbtCompound.getBoolean("filledOnce")) {
 				// Get slot of active watering can (hand or hotbar)
 				int slot = playerIn.inventory.getSlotFor(itemStackIn); // Get ID from itemstack (returns -1 in offhand)
 				final int handSlot = 40; // Offhand slot
@@ -344,30 +276,5 @@ public class ItemWateringCan extends Item {
 				worldIn.playSound(playerIn, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.PLAYERS, 1.0F, 1.0F); // Tool break sound
 			}
 		}
-	}
-
-	// Calculate petals from NBT "amount" in ItemStack
-	private static byte countPetals(ItemStack stack) {
-		// Get NBT data
-		NBTTagCompound nbtCompound = stack.getTagCompound();
-		if (nbtCompound != null) {
-			Short amountRemaining = nbtCompound.getShort("amount");
-
-			// Behavior: 8 petals is completely full, 0 petals is completely empty.
-			// 1-7 petals are in-between states, rounded up as a percentage of the max storage amount
-			return (byte) Math.ceil(((double) amountRemaining / (fluidCapacity - 1)) * (petalVariations - 1 - 1));
-		}
-
-		return (byte) -1; // Error
-	}
-
-	// Apply some default NBT on item creation
-	// From crafting, spawning in, or creative menu
-	public static NBTTagCompound getDefaultNBT() {
-		NBTTagCompound nbtCompound = new NBTTagCompound();
-		nbtCompound.setString("material", "iron");
-		nbtCompound.setString("fluid", "water");
-		nbtCompound.setShort("amount", (short) 0);
-		return nbtCompound;
 	}
 }

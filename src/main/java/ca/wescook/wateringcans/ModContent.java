@@ -20,7 +20,11 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class ModContent {
     public static final BlockFluidBase GROWTH_SOLUTION_BLOCK = null;
 
-    public static final Item WATERING_CAN = null;
+    public static final Item STONE_WATERING_CAN = null;
+    public static final Item IRON_WATERING_CAN = null;
+    public static final Item GOLDEN_WATERING_CAN = null;
+    public static final Item OBSIDIAN_WATERING_CAN = null;
+    public static final Item CREATIVE_WATERING_CAN = null;
 
     public static final Potion USING_WATERING_CAN = null;
     public static final Potion SLOW_PLAYER = null;
@@ -34,7 +38,11 @@ public class ModContent {
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> register)
     {
-        register.getRegistry().register(new ItemWateringCan());
+        register.getRegistry().register(new ItemWateringCan("stone", (short) 250, 1F, 3, false, false));
+        register.getRegistry().register(new ItemWateringCan("iron", (short) 500, 1F, 3, false, false));
+        register.getRegistry().register(new ItemWateringCan("golden", (short) 500, 2.5F, 3, true, false));
+        register.getRegistry().register(new ItemWateringCan("obsidian", (short) 500, 1F, 5, false, true));
+        register.getRegistry().register(new ItemWateringCan("creative", (short) 500, 30F, 15, false, false));
     }
 
     @SubscribeEvent
