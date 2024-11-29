@@ -2,6 +2,7 @@
   "parent": "wateringcans:item/watering_can",
   "textures": {
     "layer0": "wateringcans:items/wateringcans/base/iron",
-    "layer1": "wateringcans:items/wateringcans/petals/water_07"
+    "layer1": "wateringcans:items/wateringcans/petals/empty",
+    "layer2": "wateringcans:items/wateringcans/petals/filled_07"
   }
 }

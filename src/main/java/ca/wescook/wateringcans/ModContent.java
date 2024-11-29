@@ -27,7 +27,6 @@ public class ModContent {
     public static final Item OBSIDIAN_WATERING_CAN = null;
     public static final Item CREATIVE_WATERING_CAN = null;
 
-    public static final Potion USING_WATERING_CAN = null;
     public static final Potion SLOW_PLAYER = null;
     public static final Potion INHIBIT_FOV = null;
 
@@ -39,16 +38,15 @@ public class ModContent {
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> register)
     {
-        register.getRegistry().register(new ItemWateringCan("stone", (short) 250, 1F, 3, false, false));
-        register.getRegistry().register(new ItemWateringCan("iron", (short) 500, 1F, 3, false, false));
-        register.getRegistry().register(new ItemWateringCan("golden", (short) 500, 2.5F, 3, true, false));
-        register.getRegistry().register(new ItemWateringCan("obsidian", (short) 500, 1F, 5, false, true));
-        register.getRegistry().register(new ItemWateringCan("creative", (short) 500, 30F, 15, false, false));
+        register.getRegistry().register(new ItemWateringCan("stone", (short) 500, 1F, 3, false, false));
+        register.getRegistry().register(new ItemWateringCan("iron", (short) 1000, 1F, 3, false, false));
+        register.getRegistry().register(new ItemWateringCan("golden", (short) 1000, 2.5F, 3, true, false));
+        register.getRegistry().register(new ItemWateringCan("obsidian", (short) 1000, 1F, 5, false, true));
+        register.getRegistry().register(new ItemWateringCan("creative", (short) 1000, 30F, 15, false, false));
     }
 
     @SubscribeEvent
     public static void registerPotions(RegistryEvent.Register<Potion> register) {
-        register.getRegistry().register(new PotionInvisible(false, 0).setPotionName("usingWateringCan").setRegistryName("using_watering_can"));
         register.getRegistry().register(new PotionInvisible(true, 0).setPotionName("slowPlayer").setRegistryName("slow_player").registerPotionAttributeModifier(SharedMonsterAttributes.MOVEMENT_SPEED, "2a050f8c-07be-4e06-9d39-b6d299e0505f", -0.15D, 2));
         register.getRegistry().register(new PotionInvisible(false, 0).setPotionName("inhibitFOV").setRegistryName("inhibit_fov"));
     }

@@ -4,6 +4,7 @@ import ca.wescook.wateringcans.ModContent;
 import ca.wescook.wateringcans.configs.Config;
 import ca.wescook.wateringcans.particles.ParticleGrowthSolution;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
@@ -23,14 +24,20 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.IFluidBlock;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static ca.wescook.wateringcans.WateringCans.*;
-import static java.util.Arrays.asList;
+import static ca.wescook.wateringcans.WateringCans.MODID;
 import static net.minecraft.block.BlockFarmland.MOISTURE;
 
 public class ItemWateringCan extends Item {
@@ -47,143 +54,90 @@ public class ItemWateringCan extends Item {
 		setCreativeTab(CreativeTabs.TOOLS);
 		setMaxStackSize(1);
 
+		// Variables
 		this.fluidCapacity = fluidCapacity;
 		this.innateGrowthMultiplier = innateGrowthMultiplier;
 		this.reach = reach;
 		this.oneFill = oneFill;
 		this.heavy = heavy;
 
-		addPropertyOverride(new ResourceLocation(MODID,"petal"), new IItemPropertyGetter() {
+		// Get the percentage of fluid in the can for use in switching the model JSONs
+		addPropertyOverride(new ResourceLocation(MODID,"fluid_percentage"), new IItemPropertyGetter() {
 			@SideOnly(Side.CLIENT)
 			@Override
-			public float apply(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn) {
-				// Get NBT data
-				NBTTagCompound nbtCompound = stack.getTagCompound();
-				if (nbtCompound != null) {
-					short amountRemaining = nbtCompound.getShort("amount");
-
-					return (float) amountRemaining / fluidCapacity;
-				}
-				return 0F;
+			public float apply(ItemStack itemStack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn) {
+				FluidStack fluidStack = FluidUtil.getFluidContained(itemStack); // Get fluidstack
+				return fluidStack != null ? (float) fluidStack.amount / fluidCapacity : 0F; // Calculate percentage if fluidstack exists. Else return empty
 			}
 		});
 	}
 
-	// Don't animate re-equipping item
-	@Override
-	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
-		// Grab NBT data
-		NBTTagCompound oldNBT = oldStack.getTagCompound();
-		NBTTagCompound newNBT = newStack.getTagCompound();
-
-		// If fluid type match, don't reanimate
-		if (oldNBT != null && newNBT != null) { // NBT exists
-			if (oldNBT.getString("fluid").equals(newNBT.getString("fluid")))
-				return false; // Only fluid amount changed, don't animate
-		}
-		return slotChanged;
-	}
-
 	// Add tooltips
 	@Override
-	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-		NBTTagCompound compound = stack.getTagCompound();
-		if (compound == null || compound.getShort("amount") <= 0) {
-				tooltip.add(I18n.format("tooltip." + stack.getItem().getRegistryName().toString() + "", TextFormatting.DARK_GRAY)); // Display material tooltip
+	public void addInformation(ItemStack itemStack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+		FluidStack fluidStack = FluidUtil.getFluidContained(itemStack);
+		if (fluidStack != null) {
+			tooltip.add(I18n.format("tooltip.wateringcans:contains") + ": " + fluidStack.getLocalizedName());
+			tooltip.add(fluidStack.amount + "/" + fluidCapacity + "mB");
 		}
-		else {
-			String fluid = compound.getString("fluid"); // Get fluid type
-			tooltip.add(I18n.format("tooltip.wateringcans:contains") + ": " + I18n.format(fluids.get(fluid))); // Get localization string of fluid and add to tooltip
-			tooltip.add(I18n.format("tooltip.wateringcans:remaining") + ": " + compound.getShort("amount"));
-		}
+		else
+			tooltip.add(I18n.format("tooltip." + itemStack.getItem().getRegistryName().toString(), TextFormatting.DARK_GRAY)); // Display material tooltip
 	}
-
 
 	// On right click
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		// List of valid fluid blocks
-		String[] validBlocks = new String[]{"water", MODID + ":growth_solution_block"};
-
-		// Ray trace - find block we're looking at
+		ItemStack itemStack = playerIn.getHeldItem(handIn);
+		FluidStack fluidStack = FluidUtil.getFluidContained(itemStack);
+		NBTTagCompound nbtCompound = itemStack.getTagCompound();
+		IFluidHandler fluidHandler = FluidUtil.getFluidHandler(itemStack);
 		RayTraceResult rayTraceResult = this.rayTrace(worldIn, playerIn, true);
 
-		// Check for/create NBT tag
-		ItemStack itemstack = playerIn.getHeldItem(handIn);
-		NBTTagCompound nbtCompound = itemstack.getTagCompound(); // Check if exists
-		if (nbtCompound == null) { // If not
+		// If no NBT present
+		if (nbtCompound == null) {
 			nbtCompound = new NBTTagCompound(); // Create new compound
-			itemstack.setTagCompound(nbtCompound); // Attach to itemstack
+			nbtCompound.setBoolean("filledAtLeastOnce", false); // Hasn't been filled yet
+			itemStack.setTagCompound(nbtCompound); // Attach to itemstack
 		}
 
-		// If sky, ignore
-		if (rayTraceResult != null) {
-			// If a block is found (includes fluids)
-			if (rayTraceResult.typeOfHit == RayTraceResult.Type.BLOCK) {
+		// Break check
+		if (oneFill && nbtCompound.getBoolean("filledAtLeastOnce") && fluidStack == null) {
+			playerIn.renderBrokenItemStack(itemStack);
+			itemStack.shrink(1);
+		}
 
-				// Get exact vector to later spawn particles there
-				Vec3d rayTraceVector = rayTraceResult.hitVec;
+		// See if ray trace it hit a block
+		if (rayTraceResult != null && rayTraceResult.typeOfHit == RayTraceResult.Type.BLOCK) {
+			BlockPos blockPos = rayTraceResult.getBlockPos(); // Get block position from ray trace
+			Block block = worldIn.getBlockState(blockPos).getBlock(); // Get block
 
-				// Collect information about block
-				BlockPos blockPos = rayTraceResult.getBlockPos(); // Get block position from ray trace
-				Block blockObj = worldIn.getBlockState(blockPos).getBlock(); // Get block object
-				String blockNameRaw = blockObj.getUnlocalizedName(); // Get block name
-				String blockName = blockNameRaw.substring(5); // Clean .tile prefix
+			// Check if it's a fluid block
+			if (block instanceof IFluidBlock || block instanceof BlockLiquid) {
+				// Check if the one fill boolean is false
+				if (!oneFill || !nbtCompound.getBoolean("filledAtLeastOnce")) {
+					fluidHandler.drain(fluidCapacity, true); // Pre-emptively drain the can to replace the fluid inside if it exists
+					FluidStack targetFluidStack = FluidRegistry.getFluidStack(FluidRegistry.getFluidName(FluidRegistry.lookupFluidForBlock(block)), 1000); // Get a fluidstack of the block's fluid
+					fluidHandler.fill(targetFluidStack, true); // Fill the can with fluid
 
-				// If found block is in fluid list, refill watering can
-				if (asList(validBlocks).contains(blockName))
-					refillWateringCan(worldIn, playerIn, nbtCompound, blockName, blockPos);
-				else // Water that block
-					commenceWatering(worldIn, playerIn, itemstack, nbtCompound, rayTraceVector, blockPos);
+					worldIn.playSound(playerIn, playerIn.posX, playerIn.posY, playerIn.posZ, targetFluidStack.getFluid().getFillSound(), SoundCategory.BLOCKS, 1.0F, 1.0F); // Play fluid's bucketing sound
+
+					worldIn.setBlockToAir(blockPos); // Remove the fluid block
+
+					nbtCompound.setBoolean("filledAtLeastOnce", true);
+				}
 			}
+			else
+				commenceWatering(fluidStack, playerIn, worldIn, fluidHandler, rayTraceResult);
 		}
-		return new ActionResult<ItemStack>(EnumActionResult.PASS, itemstack); // PASS instead of SUCCESS so we can dual wield watering cans
+		return new ActionResult<>(EnumActionResult.PASS, itemStack);
 	}
 
-	private void refillWateringCan(World worldIn, EntityPlayer playerIn, NBTTagCompound nbtCompound, String blockName, BlockPos blockPos) {
-		if (oneFill) {
-			if (!nbtCompound.getBoolean("filledOnce"))
-				nbtCompound.setBoolean("filledOnce", true); // Set flag once and continue
-			else {
-				worldIn.playSound(playerIn, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.PLAYERS, 1.0F, 1.0F); // Tool break sound
-				return; // Exit method
-			}
-		}
+	public void commenceWatering(FluidStack fluidStack, EntityPlayer playerIn, World worldIn, IFluidHandler fluidHandler, RayTraceResult rayTraceResult) {
+		if (fluidStack != null) {
+			BlockPos rayTraceBlockPos = rayTraceResult.getBlockPos();
+			Vec3d rayTraceVector = rayTraceResult.hitVec;
 
-		// Water refill sound
-		worldIn.playSound(playerIn, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
-
-		// Destroy source block
-		if (!playerIn.isCreative())
-			worldIn.setBlockToAir(blockPos);
-
-		// Create bubbles
-		if (worldIn.isRemote) {
-			for (int i = 0; i < 15; i++)
-				worldIn.spawnParticle(EnumParticleTypes.WATER_BUBBLE, blockPos.getX() + 0.5 + (worldIn.rand.nextGaussian() * 0.3D), blockPos.getY() + 1, blockPos.getZ() + 0.5 + (worldIn.rand.nextGaussian() * 0.3D), 0.0D, 0.0D, 0.0D);
-		}
-
-		// Assign fluid based on block
-		if (blockName.equals("water"))
-			nbtCompound.setString("fluid", "water");
-		else if (blockName.equals(MODID + ":growth_solution_block"))
-			nbtCompound.setString("fluid", "growth_solution");
-
-		// Refill watering can
-		nbtCompound.setShort("amount", fluidCapacity);
-	}
-
-	private void commenceWatering(World worldIn, EntityPlayer playerIn, ItemStack itemStackIn, NBTTagCompound nbtCompound, Vec3d rayTraceVector, BlockPos rayTraceBlockPos) {
-		// Get info
-		String fluid = nbtCompound.getString("fluid");
-		short amountRemaining = nbtCompound.getShort("amount");
-
-		// If water remains in can
-		if (amountRemaining > 0) {
-			// Set player as currently watering (via potions because onItemUseFinish is too limiting)
-			playerIn.addPotionEffect(new PotionEffect(ModContent.USING_WATERING_CAN, 6, 0, false, false)); // Set player to "using can"
-
-			// Slow player
+			// Slow player if heavy
 			if (heavy) {
 				playerIn.addPotionEffect(new PotionEffect(ModContent.SLOW_PLAYER, 5, 5, false, false)); // Slow player
 				playerIn.addPotionEffect(new PotionEffect(ModContent.INHIBIT_FOV, 10, 0, false, false)); // Apply secondary, slightly longer potion effect to inhibit FOV changes from slowness
@@ -195,31 +149,25 @@ public class ItemWateringCan extends Item {
 			// Create water particles
 			if (worldIn.isRemote) { // Client only
 				for (int i = 0; i < 25; i++) {
-					if (fluid.equals("water"))
+					if (fluidStack.isFluidEqual(FluidRegistry.getFluidStack("water", 0)))
 						worldIn.spawnParticle(EnumParticleTypes.WATER_SPLASH, rayTraceVector.x + (worldIn.rand.nextGaussian() * 0.18D), rayTraceVector.y, rayTraceVector.z + (worldIn.rand.nextGaussian() * 0.18D), 0.0D, 0.0D, 0.0D);
-					else if (fluid.equals("growth_solution"))
+					else if (fluidStack.isFluidEqual(FluidRegistry.getFluidStack("growth_solution", 0)))
 						ParticleGrowthSolution.spawn(worldIn, rayTraceVector.x + (worldIn.rand.nextGaussian() * 0.18D), rayTraceVector.y, rayTraceVector.z + (worldIn.rand.nextGaussian() * 0.18D), 0.0D, 0.0D, 0.0D);
 				}
 			}
 
-			// Calculate watering can reach
-			int reach = this.reach;
-
-			// Used to calculate offset in each direction
-			int halfReach = (int) Math.floor(reach / 2);
-
-			// Calculate growth speed
-			float growthSpeed;
+			int reach = this.reach; // Calculate watering can reach
+			int halfReach = (int) Math.floor(reach / 2); // Used to calculate offset in each direction
+			float growthSpeed; // Calculate growth speed
 
 			if (Config.growthMultiplier != 0.0F) { // Avoid dividing by zero
 				growthSpeed = 6F; // Initial speed
-				if (fluid.equals("growth_solution")) // Fluid multiplier
+				if (fluidStack.isFluidEqual(FluidRegistry.getFluidStack("growth_solution", 0))) // Fluid multiplier
 					growthSpeed *= 2F;
 				growthSpeed *= innateGrowthMultiplier;
 				growthSpeed = Math.max(0, 30F - growthSpeed); // Lower is actually faster, so invert
 				growthSpeed = (float) Math.ceil(growthSpeed / Config.growthMultiplier); // Divide by config setting (0-10) as multiplier
-			}
-			else {
+			} else {
 				growthSpeed = 0.0F;
 			}
 
@@ -229,9 +177,9 @@ public class ItemWateringCan extends Item {
 				mob.extinguish(); // Extinguish fire
 
 			// Iterate through total reach
-			for (int i=0; i<reach; i++) {
-				for (int j=0; j<reach; j++) {
-					for (int k=-1; k<2; k++) { // Go down one layer, up two layers
+			for (int i = 0; i < reach; i++) {
+				for (int j = 0; j < reach; j++) {
+					for (int k = -1; k < 2; k++) { // Go down one layer, up two layers
 						// Calculate new block position from reach and current Y level
 						BlockPos newBlockPos = rayTraceBlockPos.add(i - halfReach, k, j - halfReach);
 						Block newBlockObj = worldIn.getBlockState(newBlockPos).getBlock();
@@ -255,27 +203,21 @@ public class ItemWateringCan extends Item {
 					}
 				}
 			}
-
 			// Decrease fluid amount
-			if (amountRemaining > 0 && !playerIn.isCreative()) {
-					nbtCompound.setShort("amount", (short) (amountRemaining - 1));
-			}
+			if (fluidStack.amount > 0 && !playerIn.isCreative())
+				fluidHandler.drain(2, true);
 		}
-		else {
-			// If gold can is empty, destroy it
-			if (oneFill && nbtCompound.getBoolean("filledOnce")) {
-				// Get slot of active watering can (hand or hotbar)
-				int slot = playerIn.inventory.getSlotFor(itemStackIn); // Get ID from itemstack (returns -1 in offhand)
-				final int handSlot = 40; // Offhand slot
+	}
 
-				if (slot == -1) { // Probably in offhand, but let's verify
-					if (playerIn.inventory.getStackInSlot(handSlot) == itemStackIn) // Checking offhand
-						slot = handSlot; // It's in the offhand
-				}
+	// Fluid item capability
+	@Override
+	public ICapabilityProvider initCapabilities(ItemStack itemStack, NBTTagCompound nbtCompound) {
+		return new FluidHandlerItemStack(itemStack, fluidCapacity);
+	}
 
-				playerIn.inventory.setInventorySlotContents(slot, ItemStack.EMPTY); // Delete item
-				worldIn.playSound(playerIn, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.PLAYERS, 1.0F, 1.0F); // Tool break sound
-			}
-		}
+	// Only animate item re-equip animation if the slot has changed
+	@Override
+	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+		return slotChanged;
 	}
 }

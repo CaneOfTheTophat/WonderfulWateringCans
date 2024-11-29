@@ -1,7 +1,6 @@
 package ca.wescook.wateringcans;
 
 import ca.wescook.wateringcans.proxy.CommonProxy;
-import com.google.common.collect.ImmutableMap;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -12,17 +11,10 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
-import java.util.Map;
-
 @Mod(modid = WateringCans.MODID, useMetadata = true, dependencies = "after:jei@[3.7.2.220,)")
 public class WateringCans {
 
 	public static final String MODID = "wateringcans"; // FG5 doesn't have the innate ability to have one source of truth for the modid using Gradle :(
-
-	public static final Map<String, String> fluids = ImmutableMap.of( // Fluid IDs and their localization strings
-		"water", "tile.water.name",
-		"growth_solution", "fluid.growth_solution"
-	);
 
 	@SidedProxy(clientSide="ca.wescook.wateringcans.proxy.ClientProxy", serverSide="ca.wescook.wateringcans.proxy.CommonProxy")
 	static private CommonProxy proxy;
