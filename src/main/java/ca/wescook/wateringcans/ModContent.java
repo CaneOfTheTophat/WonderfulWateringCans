@@ -38,11 +38,11 @@ public class ModContent {
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> register)
     {
-        register.getRegistry().register(new ItemWateringCan("stone", (short) 500, 1F, 3, false, false));
-        register.getRegistry().register(new ItemWateringCan("iron", (short) 1000, 1F, 3, false, false));
-        register.getRegistry().register(new ItemWateringCan("golden", (short) 1000, 2.5F, 3, true, false));
-        register.getRegistry().register(new ItemWateringCan("obsidian", (short) 1000, 1F, 5, false, true));
-        register.getRegistry().register(new ItemWateringCan("creative", (short) 1000, 30F, 15, false, false));
+        register.getRegistry().register(new ItemWateringCan("stone", 1F, 3));
+        register.getRegistry().register(new ItemWateringCan("iron", 1F, 3));
+        register.getRegistry().register(new ItemWateringCan("golden", 2.5F, 3));
+        register.getRegistry().register(new ItemWateringCan("obsidian", 1F, 5));
+        register.getRegistry().register(new ItemWateringCan("creative", 30F, 15));
     }
 
     @SubscribeEvent
