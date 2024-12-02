@@ -25,14 +25,13 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.IFluidBlock;
+import net.minecraftforge.fluids.*;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -68,6 +67,12 @@ public class ItemWateringCan extends Item {
 		});
 	}
 
+	// Only animate item re-equip animation if the slot has changed
+	@Override
+	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+		return slotChanged;
+	}
+
 	// Add tooltips
 	@Override
 	public void addInformation(ItemStack itemStack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
@@ -80,6 +85,37 @@ public class ItemWateringCan extends Item {
 			tooltip.add(I18n.format("tooltip." + itemStack.getItem().getRegistryName().toString(), TextFormatting.DARK_GRAY));
 	}
 
+	@Override
+	public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand)
+	{
+		ItemStack itemStack = player.getHeldItem(hand);
+		IFluidHandler handler = FluidUtil.getFluidHandler(world, pos, null);
+
+		// If the player is targeting a fluid handler
+		if(handler != null) {
+			IItemHandler playerInventory = player.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+			FluidActionResult fluidActionResult = FluidUtil.tryFillContainerAndStow(itemStack, handler, playerInventory, Integer.MAX_VALUE, player, true);
+
+			// If it succeeded, provide the real result and return SUCCESS to skip over all vanilla code
+			if (fluidActionResult.isSuccess()) {
+				ItemStack realResult = fluidActionResult.getResult();
+
+				if (!realResult.hasTagCompound()) {
+					NBTTagCompound nbtCompound = new NBTTagCompound();
+					itemStack.setTagCompound(nbtCompound);
+				}
+
+				realResult.getTagCompound().setBoolean("filledAtLeastOnce", true);
+				player.setHeldItem(hand, fluidActionResult.getResult());
+				return EnumActionResult.SUCCESS;
+			}
+		}
+		// If not, do as usual
+		else return EnumActionResult.PASS;
+
+		return EnumActionResult.FAIL;
+	}
+
 	// On right click
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
@@ -89,12 +125,15 @@ public class ItemWateringCan extends Item {
 		IFluidHandler fluidHandler = FluidUtil.getFluidHandler(itemStack);
 		RayTraceResult rayTraceResult = this.rayTrace(worldIn, playerIn, true);
 
-		// If no NBT present
-		if (nbtCompound == null) {
-			nbtCompound = new NBTTagCompound(); // Create new compound
-			nbtCompound.setBoolean("filledAtLeastOnce", false); // Hasn't been filled yet so false
-			itemStack.setTagCompound(nbtCompound); // Attach to itemstack
+		if (!itemStack.hasTagCompound()) {
+			nbtCompound = new NBTTagCompound();
+			nbtCompound.setBoolean("filledAtLeastOnce", false);
+			itemStack.setTagCompound(nbtCompound);
 		}
+
+		// If this can has been somehow filled but the tag's not set, set it to be true
+		if (fluidStack != null && !nbtCompound.getBoolean("filledAtLeastOnce"))
+			nbtCompound.setBoolean("filledAtLeastOnce", true);
 
 		// Break check
 		if (material == "golden" && nbtCompound.getBoolean("filledAtLeastOnce") && fluidStack == null) {
@@ -102,10 +141,11 @@ public class ItemWateringCan extends Item {
 			itemStack.shrink(1);
 		}
 
-		// See if ray trace it hit a block
+		// See if the ray trace hit a block
 		if (rayTraceResult != null && rayTraceResult.typeOfHit == RayTraceResult.Type.BLOCK) {
 			BlockPos blockPos = rayTraceResult.getBlockPos(); // Get block position from ray trace
 			Block block = worldIn.getBlockState(blockPos).getBlock(); // Get block
+			IFluidHandler targetedHandler = FluidUtil.getFluidHandler(worldIn, blockPos, null);
 
 			// Check if it's a fluid block
 			if (block instanceof IFluidBlock || block instanceof BlockLiquid) {
@@ -126,7 +166,8 @@ public class ItemWateringCan extends Item {
 						nbtCompound.setBoolean("filledAtLeastOnce", true); // Set one fill boolean to true
 					}
 			}
-			else
+			// If not targeting a handler, water
+			else if (targetedHandler == null)
 				commenceWatering(itemStack, fluidStack, playerIn, worldIn, fluidHandler, rayTraceResult);
 		}
 		return new ActionResult<>(EnumActionResult.PASS, itemStack);
@@ -202,20 +243,10 @@ public class ItemWateringCan extends Item {
 			}
 			// Decrease fluid amount
 			if (fluidStack.amount > 0 && !playerIn.isCreative() && material != "creative")
+			{
 				fluidHandler.drain(2, true);
+			}
 		}
-	}
-
-	// Fluid item capability
-	@Override
-	public ICapabilityProvider initCapabilities(ItemStack itemStack, NBTTagCompound nbtCompound) {
-		return new FluidHandlerItemStack(itemStack, material == "stone" ? 500 : 1000);
-	}
-
-	// Only animate item re-equip animation if the slot has changed
-	@Override
-	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
-		return slotChanged;
 	}
 
 	// Return color for color handler
@@ -224,5 +255,24 @@ public class ItemWateringCan extends Item {
 		String fluidName = FluidUtil.getFluidContained(itemStack).getFluid().getName();
 
 		return Config.fluidColorMap.get(fluidName);
+	}
+
+	// Fluid item capability
+	@Override
+	public ICapabilityProvider initCapabilities(ItemStack itemStack, NBTTagCompound nbtCompound) {
+		return new FluidHandlerItemStack(itemStack, material == "stone" ? 500 : 1000)
+		{
+			// Watering can can only be filled from fluids defined in the config
+			@Override
+			public boolean canFillFluidType(FluidStack fluid)
+			{
+				if (container.getTagCompound() != null)
+					// Disallow once-filled golden watering cans from being filled ever again
+					if (material == "golden" && container.getTagCompound().getBoolean("filledAtLeastOnce"))
+						return false;
+
+				return Config.allowedFluids.contains(fluid.getFluid().getName());
+			}
+		};
 	}
 }
