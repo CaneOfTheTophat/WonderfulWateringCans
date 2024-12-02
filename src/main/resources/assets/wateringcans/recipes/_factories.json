@@ -1,0 +1,8 @@
+{
+  "recipes": {
+    "shapeless_consume_everything": "ca.wescook.wateringcans.crafting.ConsumeEverythingRecipe$RecipeFactory"
+  },
+  "conditions": {
+    "config": "ca.wescook.wateringcans.crafting.ConfigConditionFactory"
+  }
+}

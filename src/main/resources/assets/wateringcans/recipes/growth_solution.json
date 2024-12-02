@@ -1,5 +1,11 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "wateringcans:shapeless_consume_everything",
+  "conditions": [
+    {
+      "type": "wateringcans:config",
+      "config": "enableGrowthSolutionRecipe"
+    }
+  ],
   "ingredients": [
     {
       "item": "minecraft:dye",
