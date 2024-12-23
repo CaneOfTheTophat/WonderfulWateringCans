@@ -1,5 +1,5 @@
-![Wonderful Watering Cans](screenshots/logo.png)
-![Two hard-working farmers tending to their crop](screenshots/1.png)
+![Wonderful Watering Cans](screenshots/logo.png "Wonderful Watering Cans")
+![Two hard-working farmers tending to their crop](screenshots/1.png "Two hard-working farmers tending to their crop")
 
 Adds new watering cans to help farm crops and quickly put out fires.
 
@@ -16,7 +16,7 @@ Watering cans will:
 * Put out fires
 * Most importantly, spray liquid particles
 
-![A good samaritan saving a friendly moo from eternal damnation](screenshots/3.gif)
+![A good samaritan saving a friendly moo from eternal damnation](screenshots/3.gif "A good samaritan saving a friendly moo from eternal damnation")
 
 ## Materials
 
@@ -37,4 +37,4 @@ Growth solution offers a 2x efficiency increase over regular water.  Crafted wit
 [v2.0.0](https://github.com/TheCaneOfTheTophat/WonderfulWateringCans/releases/tag/v2.0.0) - 2024-12-23
 * Initial release of Wonderful Watering Cans
 
-![Teamwork makes the dream work!](screenshots/2.png)
+![Teamwork makes the dream work!](screenshots/2.png "Teamwork makes the dream work!")
