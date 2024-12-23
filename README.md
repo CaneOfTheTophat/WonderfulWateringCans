@@ -1,10 +1,11 @@
-![Logo](screenshots/logo.png "Watering Cans")
+![Wonderful Watering Cans](screenshots/logo.png)
+![Two hard-working farmers tending to their crop](screenshots/1.png)
 
-Wonderful watering cans!  Adds new watering cans to help farm crops, or quickly put out fires.
+Adds new watering cans to help farm crops and quickly put out fires.
 
-Idea originally from Extra Utilities, now implemented as a standalone mod.
+Idea originally from Extra Utilities, implemented as an original standalone mod by Wescook, then forked, updated and overhauled to 1.12.2.
 
-[See releases tab for downloads.](https://github.com/WesCook/WateringCans/releases)
+Special thanks to DanteGoldenrod for testing and aid with screenshots.
 
 ## Features
 
@@ -13,9 +14,9 @@ Watering cans will:
 * Speed up growth ticks (configurable rate)
 * Hydrate soil
 * Put out fires
-* Most importantly, spray water particles
+* Most importantly, spray liquid particles
 
-![Fires](screenshots/fires.png "Saving a friendly moo")
+![A good samaritan saving a friendly moo from eternal damnation](screenshots/3.gif)
 
 ## Materials
 
@@ -33,33 +34,7 @@ Growth solution offers a 2x efficiency increase over regular water.  Crafted wit
 
 ## Changelog
 
-[v1.1.2](https://github.com/WesCook/WateringCans/releases/tag/v1.1.2) - 2017-06-24
+[v2.0.0](https://github.com/TheCaneOfTheTophat/WonderfulWateringCans/releases/tag/v2.0.0) - 2024-12-23
+* Initial release of Wonderful Watering Cans
 
-* Buffed golden watering can
-* Slightly nerfed growth solution
-* Fixed watering can firing re-equip animation too often on servers
-
-[v1.1.1](https://github.com/WesCook/WateringCans/releases/tag/v1.1.1) - 2017-06-21
-
-* Fixed ghost potion effects showing up when using the watering can
-* Fixed crash when watering unregistered blocks
-
-[v1.1.0](https://github.com/WesCook/WateringCans/releases/tag/v1.1.0) - 2017-06-02
-
-* Added creative watering can
-* Added German localizations (contribution from ACGaming)
-
-[v1.0.2](https://github.com/WesCook/WateringCans/releases/tag/v1.0.2) - 2017-02-21
-
-* Added ore dictionary support to recipes
-
-[v1.0.1](https://github.com/WesCook/WateringCans/releases/tag/v1.0.1) - 2016-12-24
-
-* Reduced harshness of outline on watering cans
-* Fixed bug where item did not reanimate when changing fluid types
-
-[v1.0.0](https://github.com/WesCook/WateringCans/releases/tag/v1.0.0) - 2016-12-20
-
-* Initial release
-
-![Friends](screenshots/friends.png "Now friends forever")
+![Teamwork makes the dream work!](screenshots/2.png)

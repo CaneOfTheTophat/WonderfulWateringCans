@@ -2,7 +2,8 @@ package ca.wescook.wateringcans.configs;
 
 import ca.wescook.wateringcans.WateringCans;
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.text.WordUtils;
 
 import java.io.File;
@@ -14,38 +15,58 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 
 public class Config {
 
-	public static Map<String, Boolean> bools = new HashMap<>();
-	private static final String[] materials = new String[]{"stone", "iron", "golden", "obsidian", "creative"};
+	public static Map<String, Boolean> recipeBools = new HashMap<>();
+
 	public static float growthMultiplier;
+
     public static HashMap<String, Float> fluidMultiplierMap = new HashMap<>();
 	public static HashMap<String, Integer> fluidColorMap = new HashMap<>();
 	public static ArrayList<String> allowedFluids = new ArrayList<>();
 
-	public static void registerConfigs(FMLPreInitializationEvent event) {
-		Configuration configFile = new Configuration(new File(event.getModConfigurationDirectory().getPath(), WateringCans.MODID + ".cfg"));
-		configFile.load();
+	private static final String[] materials = new String[]{"stone", "iron", "golden", "obsidian", "creative"};
 
-		bools.put("enableGrowthSolutionRecipe", configFile.getBoolean("enableGrowthSolutionRecipe", CATEGORY_GENERAL, true, "Allows crafting of the growth solution bucket."));
+	public Configuration configFile;
 
+	public void generateConfig(File file)
+	{
+		configFile = new Configuration(file);
+		registerConfigs();
+	}
+
+	@SuppressWarnings("unused")
+	@SubscribeEvent
+	public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event)
+	{
+		if(WateringCans.MODID.equals(event.getModID()))
+			registerConfigs();
+	}
+
+	public void registerConfigs() {
 		for (String material : materials) {
 			if (!material.equals("creative"))
-				bools.put("enable" + WordUtils.capitalize(material) + "WateringCanRecipe", configFile.getBoolean("enable" + WordUtils.capitalize(material) + "WateringCanRecipe", CATEGORY_GENERAL, true, "Allows crafting of the " + material + " watering can."));
+				recipeBools.put(WordUtils.capitalize(material) + " Watering Can Recipe", configFile.get("recipes", WordUtils.capitalize(material) + " Watering Can Recipe", true).getBoolean());
 		}
 
-		growthMultiplier = configFile.getFloat("growthMultiplier", CATEGORY_GENERAL, 1.0F, 0.0F, 10.0F, "Multiply growth ticks from watering cans by this value");
+		recipeBools.put("Growth Solution Recipe", configFile.get("recipes", "Growth Solution Recipe", true).getBoolean());
 
-        String[] rawFluidMap = configFile.getStringList("fluidMap", CATEGORY_GENERAL, new String[]
-                        {"water", "1.0F", "0x3F76E4",
-                                "growth_solution", "2.0F", "0x1AFF1A"},
+		growthMultiplier = configFile.getFloat("Watering Can Growth Multiplier", CATEGORY_GENERAL, 1.0F, 0.0F, 10.0F, "Multiply growth ticks from watering cans by this value");
+
+        String[] rawFluidMap = configFile.getStringList("Allowed fluids", CATEGORY_GENERAL, new String[]
+                        {"water, 1.0F, 0x3F76E4", "growth_solution, 2.0F, 0x1AFF1A"},
                 "The IDs of fluids that can be bucketed into a watering can, succeeded by their growth multiplier (float) and hex color in that order.\n");
 
-		for (int i = 0; i < rawFluidMap.length; i += 3) {
-			fluidMultiplierMap.put(rawFluidMap[i], Float.parseFloat(rawFluidMap[i + 1]));
-			fluidColorMap.put(rawFluidMap[i], Integer.decode(rawFluidMap[i + 2]));
-			allowedFluids.add(rawFluidMap[i]);
+		if(rawFluidMap != null) {
+            for (String fluidEntry : rawFluidMap) {
+
+                String[] split = fluidEntry.replaceAll("\\s+", "").split(",");
+
+                fluidMultiplierMap.put(split[0], Float.parseFloat(split[1]));
+                fluidColorMap.put(split[0], Integer.decode(split[2]));
+                allowedFluids.add(split[0]);
+            }
 		}
 
-		// Update file
+
 		if (configFile.hasChanged())
 			configFile.save();
 	}

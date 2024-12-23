@@ -3,7 +3,7 @@
   "conditions": [
     {
       "type": "wateringcans:config",
-      "config": "enableGoldenWateringCanRecipe"
+      "config": "Golden Watering Can Recipe"
     }
   ],
   "pattern": [

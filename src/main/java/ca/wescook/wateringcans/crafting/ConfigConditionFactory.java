@@ -8,10 +8,11 @@ import net.minecraftforge.common.crafting.JsonContext;
 
 import java.util.function.BooleanSupplier;
 
+@SuppressWarnings("unused")
 public class ConfigConditionFactory implements IConditionFactory {
     @Override
     public BooleanSupplier parse(JsonContext context, JsonObject json) {
         String config = JsonUtils.getString(json, "config");
-        return () -> Config.bools.get(config);
+        return () -> Config.recipeBools.get(config);
     }
 }

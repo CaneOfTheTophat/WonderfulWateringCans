@@ -12,6 +12,7 @@ import net.minecraftforge.fml.relauncher.Side;
 @Mod.EventBusSubscriber(value = Side.CLIENT)
 public class ModelRegistry {
 
+    @SuppressWarnings("unused")
     @SubscribeEvent
     public static void registerModels(ModelRegistryEvent register) {
         setModel(ModContent.STONE_WATERING_CAN);

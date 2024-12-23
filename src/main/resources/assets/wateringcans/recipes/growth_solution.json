@@ -3,7 +3,7 @@
   "conditions": [
     {
       "type": "wateringcans:config",
-      "config": "enableGrowthSolutionRecipe"
+      "config": "Growth Solution Recipe"
     }
   ],
   "ingredients": [

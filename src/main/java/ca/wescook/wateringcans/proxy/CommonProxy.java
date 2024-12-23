@@ -7,10 +7,14 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
+import java.io.File;
+
 public class CommonProxy {
 
+	Config config = new Config();
+
 	public void preInit(FMLPreInitializationEvent event) {
-		Config.registerConfigs(event);
+		config.generateConfig(new File(event.getModConfigurationDirectory().getPath(), WateringCans.MODID + ".cfg"));
 
 		FluidRegistry.registerFluid(WateringCans.growthSolution);
 		FluidRegistry.addBucketForFluid(WateringCans.growthSolution);

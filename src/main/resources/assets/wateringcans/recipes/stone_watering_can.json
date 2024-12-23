@@ -3,7 +3,7 @@
   "conditions": [
     {
       "type": "wateringcans:config",
-      "config": "enableStoneWateringCanRecipe"
+      "config": "Stone Watering Can Recipe"
     }
   ],
   "pattern": [
